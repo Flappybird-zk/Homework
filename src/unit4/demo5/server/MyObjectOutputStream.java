@@ -9,7 +9,8 @@ public class MyObjectOutputStream extends ObjectOutputStream {
         super(out);
     }
 
-    public void writeStreamHeader() throws IOException{
+    @Override
+    protected void writeStreamHeader() throws IOException {
         return;
     }
 }

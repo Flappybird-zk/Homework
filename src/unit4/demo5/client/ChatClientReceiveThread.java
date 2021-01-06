@@ -1,73 +1,74 @@
 package unit4.demo5.client;
 
 import unit4.demo5.Message;
-import unit4.demo5.utils.FileUtils;
 
-import java.io.*;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.net.Socket;
 
-public class ChatClientReceiveThread extends Thread{
+/**
+ * 客户端接收信息
+ */
+public class ChatClientReceiveThread extends Thread {
     private Socket socket;
-    // 下载文件的保存的绝对路径
-    private String downloadPath;
+    private String savedAbsolutePath;
 
-    public ChatClientReceiveThread(String downloadPath, Socket socket) {
-        this.downloadPath = downloadPath;
+    public ChatClientReceiveThread(Socket socket, String savedAbsolutePath) {
         this.socket = socket;
+        this.savedAbsolutePath = savedAbsolutePath;
     }
 
     @Override
     public void run() {
-        ObjectInputStream objectInput = null;
-        FileOutputStream fileOutput = null;
+        ObjectInputStream in = null;
+        FileOutputStream out = null;
 
         try {
-            objectInput = new ObjectInputStream(socket.getInputStream());
-            while(true){
-                Message msg = (Message) objectInput.readObject();
-                int msgType = msg.getMsgType();
-                if(msgType == Message.MSG_EXIT){
-                    System.out.println("receive exit.");
-                    break;
-                }else if(msgType == Message.MSG_CHAT){
-                    System.out.println("新消息：" + new String(msg.getBuffer()));
-                }else if(msgType == Message.MSG_FILE){
-                    String[] fileArr = msg.getFileName().split("/");
+            in = new ObjectInputStream(socket.getInputStream());
+            while (true) {
+                Message message = (Message) in.readObject();
+                if (Message.TYPE_CHAT.equals(message.type)) {
+                    System.out.println("消息：" + new String(message.getBuffer()));
+                } else if (Message.TYPE_FILE.equals(message.type)) {
+                    String[] fileArr = message.getFileName().split("/");
                     String filename = fileArr[fileArr.length - 1];
-                    System.out.println("接收到文件：" + filename);
-                    //保存文件到本地
-                    String diskFile = this.downloadPath + "/" + filename;
-                    fileOutput = new FileOutputStream(diskFile);
-                    fileOutput.write(msg.getBuffer());
+                    System.out.println("文件：" + filename);
+                    // 保存文件到本地
+                    String diskFile = this.savedAbsolutePath + "/" + filename;
+                    out = new FileOutputStream(diskFile);
+                    out.write(message.getBuffer());
                     System.out.println("保存到本地" + diskFile + "成功");
+                } else if (Message.TYPE_EXIT.equals(message.type)) {
+                    System.out.println("接收线程退出!");
+                    break;
+                }else{
+                    continue;
                 }
             }
         } catch (IOException | ClassNotFoundException e) {
             e.printStackTrace();
         } finally {
-            if(fileOutput != null) {
-                try {
-                    fileOutput.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+            try {
+                socket.close();
+            } catch (IOException e) {
+                e.printStackTrace();
             }
 
-            if(socket != null) {
+            if(in != null) {
                 try {
-                    socket.close();
+                    in.close();
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
             }
-            if(objectInput != null) {
+            if(out != null) {
                 try {
-                    objectInput.close();
+                    out.close();
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
             }
-
         }
     }
 }

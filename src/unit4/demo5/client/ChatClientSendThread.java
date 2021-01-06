@@ -1,81 +1,87 @@
 package unit4.demo5.client;
 
 import unit4.demo5.Message;
+import unit4.demo5.utils.FileUtils;
+import unit4.demo5.utils.MenuUtils;
 
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
-import java.nio.charset.StandardCharsets;
 import java.util.Scanner;
 
-public class ChatClientSendThread extends Thread{
+/**
+ * 客户端发送信息
+ */
+public class ChatClientSendThread extends Thread {
     private Socket socket;
 
-    public ChatClientSendThread( Socket socket) {
+    public ChatClientSendThread(Socket socket) {
         this.socket = socket;
-    }
-
-    public static void showMenu() {
-        System.out.println("**************** 主菜单 ****************");
-        System.out.println("1-发送消息");
-        System.out.println("2-发送文件");
-        System.out.println("0-退出");
-        System.out.println("请输入操作");
     }
 
     @Override
     public void run() {
-        FileInputStream fileInput = null;
-        ObjectOutputStream objectOutput = null;
+        FileInputStream in = null;
+        ObjectOutputStream out = null;
 
         Scanner sc = null;
 
         try {
-            objectOutput = new ObjectOutputStream(socket.getOutputStream());
-
-            while(true){
-                showMenu();
+            out = new ObjectOutputStream(socket.getOutputStream());
+            while(true) {
+                MenuUtils.mainMenu();
+                System.out.println("请选择指令：");
                 sc = new Scanner(System.in);
                 String choose = sc.next();
-                if(choose.equals("0")){
-                    System.out.println("send exit.");
-                    objectOutput.writeObject(new Message(Message.MSG_EXIT,null, "bye".getBytes()));
-                    Thread.sleep(2000);
-                    return;
-                }else if(choose.equals("1")){
-                    System.out.println("请输入聊天信息：");
+                if("1".equals(choose)){
+                    System.out.println("请输入信息：");
                     String str = sc.next();
-                    objectOutput.writeObject(new Message(Message.MSG_CHAT, null, str.getBytes()));
+                    out.writeObject(new Message("chat", null, str.getBytes()));
                     System.out.println("发送成功！");
-                }else if(choose.equals("2")){
-                    System.out.println("请输入您发送文件的绝对路径：");
+                }
+                if("2".equals(choose)) {
+                    System.out.println("请输入文件的绝对路径:");
                     String path = sc.next();
-                    fileInput = new FileInputStream(path);
-                    int length = fileInput.available();
-                    byte[] bytes = new byte[length];
-                    if(fileInput.read(bytes) != -1) {
-                        objectOutput.writeObject(new Message(Message.MSG_FILE, path, bytes));
-                        System.out.println("发送 [" + path + "] 成功");
-                    } else {
-                        System.out.println("读取失败！");
+                    if(!FileUtils.exists(path)){
+                        System.out.println("文件[" + path + "]不存在！");
+                        continue;
                     }
+                    in = new FileInputStream(path);
+                    int length = in.available();
+                    byte[] bytes = new byte[length];
+                    if(in.read(bytes) != -1) {
+                        out.writeObject(new Message("file", path, bytes));
+                        System.out.println("发送文件 [" + path + "] 成功");
+                    } else {
+                        System.out.println("读取文件失败！");
+                    }
+                } else if("0".equals(choose)){
+                    System.out.println("发送线程退出！");
+                    out.writeObject(new Message(Message.TYPE_EXIT,null,null));
+                    Thread.sleep(1000);
+                    break;
+                } else {
+                    continue;
                 }
             }
         } catch (IOException | InterruptedException e) {
             e.printStackTrace();
         } finally {
-            if(sc != null) sc.close();
-            if(fileInput != null) {
+            assert sc != null;
+            sc.close();
+
+            if(in != null) {
                 try {
-                    fileInput.close();
+                    in.close();
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
             }
-            if(objectOutput != null) {
+
+            if(out != null){
                 try {
-                    objectOutput.close();
+                    out.close();
                 } catch (IOException e) {
                     e.printStackTrace();
                 }

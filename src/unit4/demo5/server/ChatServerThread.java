@@ -8,89 +8,80 @@ import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.util.ArrayList;
 
-public class ChatServerThread extends Thread{
+public class ChatServerThread extends Thread {
     private Socket socket;
+    // 保存所有的Socket连接
     private static ArrayList<Socket> clients = new ArrayList<>();
 
     public ChatServerThread(Socket socket) {
         this.socket = socket;
         clients.add(socket);
-        System.out.println("连接池添加客户端成功,当前客户端数量:" + clients.size());
+        System.out.println("add client success, size:" + clients.size());
     }
 
     @Override
     public void run() {
-        System.out.println("[" + Thread.currentThread().getName() + "], client[" + socket.getInetAddress() + "]  connect success！");
+        ObjectInputStream in = null;
+        ObjectOutputStream out = null;
+        ObjectOutputStream outOther = null;
 
-        ObjectInputStream input = null;
-        ObjectOutputStream output = null;
-
-        ObjectOutputStream outputOther = null;
-
+        System.out.println(Thread.currentThread().getName() + "-client[" + socket.getInetAddress() + "] connect success！");
         try {
-            input = new ObjectInputStream(socket.getInputStream());
-            output = new MyObjectOutputStream(socket.getOutputStream());
+            in = new ObjectInputStream(socket.getInputStream());
+            out = new ObjectOutputStream(socket.getOutputStream());
 
-            while(true){
-                Message msg = (Message) input.readObject();
-                int msgType = msg.getMsgType();
-//                System.out.println("=======" + msg);
-                String threadName = Thread.currentThread().getName();
-                if(msgType == Message.MSG_EXIT){
-                    // 退出，发送指令到客户端接收线程
-                    output.writeObject(msg);
-                    System.out.println("收到" + threadName + "[" + socket.getLocalAddress() + "] exit." );
+            while (true) {
+                Message message = (Message) in.readObject();
+                // 消息类型判断
+                if (Message.TYPE_CHAT.equals(message.type)) {
+                    System.out.println(Thread.currentThread().getName() + "收到消息:"+ new String(message.getBuffer()));
+                } else if (Message.TYPE_FILE.equals(message.type)) {
+                    System.out.println(Thread.currentThread().getName() + "收到文件:"+ message.getFileName());
+                } else if (Message.TYPE_EXIT.equals(message.type)) {
+                    out.writeObject(message);
+                    System.out.println(Thread.currentThread().getName() + " client[" + socket.toString() + "] 退出");
                     break;
-                }else if(msgType == Message.MSG_CHAT){
-                    System.out.println("收到" + threadName + "信息["+ new String(msg.getBuffer()) + "]");
-                }else if(msgType == Message.MSG_FILE){
-                    System.out.println("收到" + threadName + "文件["+ msg.getFileName() + "]");
-                }else{
-                    System.out.println(threadName + "other!!!");
                 }
-
-                // 分发
-                for(Socket client: clients){
-                    if(client == socket) continue;
-                    outputOther = new MyObjectOutputStream(client.getOutputStream());
-                    outputOther.writeObject(msg);
-                    System.out.println("[" + threadName + "] 转发到 client[" + client.toString() + "] 成功." );
+                // 发送消息到其他客户端
+                for (Socket client : clients) {
+                    if (client == socket) continue;
+                    outOther = new MyObjectOutputStream(client.getOutputStream());
+                    outOther.writeObject(message);
+                    System.out.println(Thread.currentThread().getName() + "转发给client[" + client.toString() + "信息成功");
                 }
             }
-
         } catch (IOException | ClassNotFoundException e) {
             e.printStackTrace();
         } finally {
             clients.remove(socket);
-            if(socket != null) {
-                try {
-                    socket.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
             try {
-                if(outputOther != null) outputOther.close();
+                socket.close();
             } catch (IOException e) {
                 e.printStackTrace();
             }
 
-            if(input != null) {
+            if(in != null) {
                 try {
-                    input.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-            if(output != null) {
-                try {
-                    output.close();
+                    in.close();
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
             }
 
+            if(out != null) {
+                try {
+                    out.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+            if(outOther != null){
+                try {
+                    outOther.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
         }
-
     }
 }

@@ -1,32 +1,30 @@
 package unit4.demo5.client;
 
+
 import unit4.demo5.utils.FileUtils;
 
-import java.io.File;
 import java.io.IOException;
 import java.net.Socket;
 
 public class ChatClient {
-    // 设置相对路径
-    private String savedPath;
+    // 保存文件到本地磁盘的绝对路径
+    private String savedAbsolutePath;
 
     public ChatClient(String savedPath) {
-        this.savedPath = savedPath;
+        this.savedAbsolutePath  = FileUtils.mkdirs(savedPath);
     }
 
-    public void run(){
-        // 建立连接
+    public void begin() {
         Socket socket = null;
         try {
             socket = new Socket("127.0.0.1", 8888);
         } catch (IOException e) {
             e.printStackTrace();
         }
-        // 接收
-        String savedAbsolutePath = FileUtils.mkdirs(savedPath);
-        new ChatClientReceiveThread(savedAbsolutePath, socket).start();
-        // 发送
+
+        // 接收消息线程
+        new ChatClientReceiveThread(socket, savedAbsolutePath).start();
+        // 发送消息线程
         new ChatClientSendThread(socket).start();
     }
 }
-
