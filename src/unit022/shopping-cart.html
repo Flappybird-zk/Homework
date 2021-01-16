@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Vue简易购物车</title>
+    <link rel="stylesheet" href="./css/shopping-cart.css">
+</head>
+<body>
+<div id="shopping-cart">
+    <table>
+        <thead>
+            <tr>
+                <th></th>
+                <th>书籍名称</th>
+                <th>出版日期</th>
+                <th>价格</th>
+                <th>购买数量</th>
+                <th>操作</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr v-for="(book, idx) in books">
+                <td>{{idx + 1}}</td>
+                <td>{{book.name}}</td>
+                <td>{{book.publishDate}}</td>
+                <td>¥ {{book.price | priceFormatter}}</td>
+                <td>
+                    <button class="quantity-btn" @click="reduce(idx)">-</button>
+                    {{book.quantity}}
+                    <button class="quantity-btn" @click="increase(idx)">+</button>
+                </td>
+                <td><button class="remove-btn" @click="remove(idx)">移除</button></td>
+            </tr>
+        </tbody>
+    </table>
+    <div id="total-price">总价格：<span id="price-val">¥ {{totalPrice | priceFormatter}}</span></div>
+</div>
+<script src="./js/vue.js"></script>
+<script src="./js/shopping-cart.js"></script>
+</body>
+</html>

@@ -1,0 +1,49 @@
+div #shopping-cart{
+    width: 100%;
+}
+#shopping-cart table {
+    width: 80%;
+    margin: auto;
+    border-collapse:collapse;
+    border: 1px solid #000;
+    text-align: left;
+    padding-left: 100px;
+}
+
+thead{
+    background-color: #E6E6E6;
+}
+
+td, th{
+    border: 1px solid #000;
+    height:50px;
+    line-height: 50px;
+    text-align: left;
+    padding-left: 20px;
+}
+
+.quantity-btn {
+    width: 30px;
+    height: 30px;
+    cursor: pointer;
+    border: 1px solid aliceblue;
+    border-radius: 2px;
+}
+
+.remove-btn {
+    width: 50px;
+    height: 25px;
+    cursor: pointer;
+    border: 1px solid aliceblue;
+    border-radius: 2px;
+}
+
+
+
+
+#total-price{
+    width: 80%;
+    margin: 20px auto;
+    font-family: bold;
+    font-size: 20px;
+}
