@@ -26,7 +26,7 @@ public class LoginController extends HttpServlet {
         String password = req.getParameter("password");
 
         PrintWriter out = resp.getWriter();
-        out.println("username:" + username + ", password:" + password);
+//         out.println("username:" + username + ", password:" + password);
         UserService service = new UserService();
         try {
             User user = service.login(username, password);

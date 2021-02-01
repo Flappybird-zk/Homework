@@ -12,7 +12,6 @@ public class UserDao implements IUserDao {
     @Override
     public User login(String username, String password) {
         QueryRunner qr = new QueryRunner(C3P0Utils.dataSource);
-        System.out.println(username + password);
         String sql = "SELECT * FROM `user` WHERE `username`=? AND `password`=?";
         Object[] param = new Object[]{username, password};
         User user = null;

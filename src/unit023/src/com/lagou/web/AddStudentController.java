@@ -35,7 +35,6 @@ public class AddStudentController extends HttpServlet {
         stu.setUsername(username);
         stu.setGender(gender);
         stu.setBirthday(dateBirthday);
-        System.out.println(stu);
 
         boolean result = false;
         UserService service = new UserService();

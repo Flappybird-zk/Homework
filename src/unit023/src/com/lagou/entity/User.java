@@ -1,7 +1,5 @@
 package com.lagou.entity;
 
-import java.util.Date;
-
 public class User {
     private Integer id;
     private String username;
