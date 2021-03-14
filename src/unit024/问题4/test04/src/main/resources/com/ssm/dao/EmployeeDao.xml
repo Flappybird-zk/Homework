@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ssm.dao.EmployeeDao">
+    <resultMap id="employee" type="com.ssm.entity.Employee">
+        <association property="department" column="dept_id" fetchType="lazy" select="com.ssm.dao.DepartmentDao.findDeptById" />
+    </resultMap>
+
+    <!--查询所有员工信息-->
+    <select id="findAll" resultMap="employee">
+        select * from tb_employee
+    </select>
+    <select id="addEmployee" parameterType="com.ssm.entity.Employee">
+        insert into tb_employee values (null, #{empName}, #{deptId}, #{jobName}, #{joinDate}, #{telephone})
+    </select>
+
+</mapper>
